@@ -1,6 +1,7 @@
 package com.revoltcode.learnreactivespring.fluxandmono;
 
 import org.junit.Test;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import reactor.util.retry.Retry;
@@ -77,13 +78,16 @@ public class FluxAndMonoErrorTest {
 
     @Test
     public void fluxErrorHandlingOnErrorMapWithRetryBackOff(){
+        Retry retrySpec = Retry.fixedDelay(2, Duration.ofMillis(1000))
+                .filter((ex) -> ex instanceof CustomException)
+                .onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> Exceptions.propagate(retrySignal.failure())));
+
         Flux<String> stringFlux;
         stringFlux = Flux.just("A", "B", "C")
                 .concatWith(Flux.error(new RuntimeException("Exception Occured")))
                 .concatWith(Flux.just("D"))
                 .onErrorMap( ex -> new CustomException(ex.getMessage()))
-                .retry(2) //replace with retryBackoff(...) implementation if not deprecated
-                //.retryBackoff(2, Duration.ofSeconds(5)) //deprecated
+                .retryWhen(retrySpec)
                 .log();
 
         StepVerifier.create(stringFlux)
