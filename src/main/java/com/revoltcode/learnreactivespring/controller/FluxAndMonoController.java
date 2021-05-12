@@ -17,8 +17,15 @@ public class FluxAndMonoController {
                 .log();
     }
 
-    @GetMapping(value = "/fluxstream", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Flux<Long> returnFluxStream(){
+    @GetMapping(value = "/finite/fluxstream", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<Integer> returnFiniteFluxStream(){
+        return Flux.just(1, 2, 3, 4)
+                .delayElements(Duration.ofSeconds(1))
+                .log();
+    }
+
+    @GetMapping(value = "/infinite/fluxstream", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<Long> returnFInfiniteluxStream(){
 
         return Flux.interval(Duration.ofSeconds(1))
                 .log();
